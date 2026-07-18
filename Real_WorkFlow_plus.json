@@ -1,0 +1,453 @@
+{
+  "name": "Real_WorkFlow_plus",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -368,
+        0
+      ],
+      "id": "df1f26ae-752b-4438-9d67-bb5c01b89e86",
+      "name": "When chat message received",
+      "webhookId": "4b1226af-64be-4964-af28-d4caf5d079a5"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        256
+      ],
+      "id": "1e5e4553-9040-4b13-9041-3b5636044ff5",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=## Overview\nYou are the Supervisor Agent for a modular n8n automation system. Your job is to understand the user's intent, collect missing required information, and route the request to exactly one specialized workflow. The current date and time is {{ $now.toString() }}\n\n## Tools\n- Gmail: Read emails from the connected account and send emails to the exact address provided by the user.\n- Calendar: Retrieve events and create appointments.\n- Search: Find up-to-date information on the web.\n- Simple Memory: Store and recall conversation context.\n- Qwen_7b: Analyze intent and decide routing.\n\n## Rules\n- Trigger only one relevant workflow unless the user explicitly requests multiple tasks.\n- Ask for all missing mandatory details before using any tool.\n- Never hallucinate, infer, or modify user-provided facts, email addresses, dates, names, or content.\n- Preserve the user's exact wording and requested tone.\n- For email sending, pass the recipient address exactly as written in the chat.\n- For email reading, always use the connected Gmail account only.\n- For calendar creation, confirm title, date, and time if any are missing.\n- Use Search only when external information is required.\n- Return clear, structured, task-focused responses.\n\n## Instructions\n1) Identify the user's intent.\n2) Select the single matching workflow.\n3) Validate required inputs.\n4) Request missing information if needed.\n5) Execute only the selected workflow.\n6) Return the final result in a clean format.\n\n## Examples\n1)\nInput: Send an email to ziadnassarc12@gmail.com\n- Action: Use Gmail and keep the recipient exactly as entered.\n- Output: Email sent confirmation.\n\n2)\nInput: Show my latest emails.\n- Action: Use Gmail get mail from the connected account.\n- Output: Organized inbox summary.\n\n3)\nInput: Schedule a meeting tomorrow at 3 PM.\n- Action: Use Calendar after confirming missing details.\n- Output: Event confirmation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "048c6f57-4036-4297-9ae5-2a32739fe9a5",
+      "name": "Supervisor"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        336,
+        752
+      ],
+      "id": "314dac26-25a2-4b36-9c6e-857a9cb194ed",
+      "name": "get mail",
+      "webhookId": "3ca663c4-47e4-4645-a1af-cb4c0e63333a"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To', ``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        144,
+        768
+      ],
+      "id": "e86cd5c1-5fb9-4943-9b89-1e61e4fbf16b",
+      "name": "Send email",
+      "webhookId": "6a8bebe6-34dd-4cc3-bf55-79ba3946dabf"
+    },
+    {
+      "parameters": {
+        "toolDescription": "use this agent for any calender action",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=## Overview\nYou are a Calendar Agent. Your job is to retrieve and create calendar events accurately. The current date and time is {{ $now.toString() }}\n\n## Tools\n- Get Event: Retrieve existing calendar events.\n- Create Event: Create new appointments.\n- Ollama Chat Model2: Normalize dates and event details.\n\n## Rules\n- Ask for title, date, and time if missing.\n- Never create events without confirmation.\n- Preserve all user-provided details.\n- Return structured event summaries.\n\n## Instructions\n1) Detect whether the user wants to view or create events.\n2) Collect missing details.\n3) Normalize date/time.\n4) Use the correct calendar tool.\n\n## Examples\n1)\nInput: Schedule a meeting tomorrow at 3 PM.\n- Action: Ask for event title if missing, then create event.\n- Output: Event confirmation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        1008,
+        160
+      ],
+      "id": "df3e1bb1-bf4c-459f-8da5-98595d77ae5a",
+      "name": "calender"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "ziadnasar6@gmail.com",
+          "mode": "list",
+          "cachedResultName": "ziadnasar6@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1264,
+        464
+      ],
+      "id": "e71bc9ff-ecb7-4aef-b865-b3db3c7a8549",
+      "name": "Create"
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.2,
+          "keepAlive": "1h",
+          "numCtx": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        720
+      ],
+      "id": "b3152c5b-ace0-4fa6-8f1a-56adb0a14be6",
+      "name": "Ollama Chat Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "gjFRQLOqRu6k3Fz8",
+          "name": "Ollama account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama3.2:3b",
+        "options": {
+          "temperature": 0.2,
+          "keepAlive": "1h",
+          "numCtx": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        400,
+        416
+      ],
+      "id": "a99b5986-9ce7-4a3d-b9db-3ad9346303b7",
+      "name": "Ollama Chat Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "pXtdOdEJVLwbpzQX",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5:7b",
+        "options": {
+          "temperature": 0.2,
+          "keepAlive": "1h",
+          "numCtx": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        880,
+        368
+      ],
+      "id": "d561b2cd-151f-4174-a8c6-543e89b00e1c",
+      "name": "Ollama Chat Model2",
+      "credentials": {
+        "ollamaApi": {
+          "id": "pXtdOdEJVLwbpzQX",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "AI Agent that can call other tools for any email action",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=## Overview\nYou are an Email Agent. Your job is to read emails from the connected Gmail account and send emails to the exact recipient address provided by the user. The current date and time is {{ $now.toString() }}\n\n## Tools\n- get mail: Retrieve emails only from the connected Gmail account.\n- Send email: Send messages to the exact email address provided by the user.\n- Ollama Chat Model: Format tone only; never modify addresses or facts.\n\n## Rules\n- NEVER change, correct, infer, or replace any email address provided by the user.\n- Use the recipient exactly as written, even if it appears unusual.\n- If no recipient is provided, ask for it.\n- For sending, only improve tone and formatting; preserve the exact meaning.\n- For reading, always use the connected Gmail account, not any user-provided address.\n- If sending fails, report the original address exactly as entered.\n\n## Instructions\n1) Detect whether the request is to read or send email.\n2) If sending, extract the recipient exactly as written in the chat.\n3) Verify recipient, subject, and content are present.\n4) Use Ollama Chat Model only to adjust tone without altering addresses.\n5) Pass the original recipient unchanged to Send email.\n6) If reading, use get mail from the connected Gmail account only.\n\n## Examples\n1)\nInput: Send to ziadnassarc12@gmail.com\n- Action: Use Send email with recipient = ziadnassarc12@gmail.com exactly.\n- Output: Email sent confirmation."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        16,
+        432
+      ],
+      "id": "4ec544be-f549-4ec9-ba01-0febb673e2f4",
+      "name": "Gmail"
+    },
+    {
+      "parameters": {
+        "toolDescription": "use this agent for any search action ",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {
+          "systemMessage": "=## Overview\nYou are a Search Agent. Your job is to perform web searches and return concise factual answers. The current date and time is {{ $now.toString() }}\n\n## Tools\n- Search: Retrieve up-to-date information from the web.\n- Ollama Chat Model1: Summarize and organize search results.\n\n## Rules\n- Search only when external information is required.\n- Summarize results accurately.\n- Never fabricate facts.\n- Return clear, concise answers.\n\n## Instructions\n1) Analyze the information request.\n2) Use Search to gather data.\n3) Summarize using Ollama Chat Model1.\n4) Present organized findings.\n\n## Examples\n1)\nInput: What is the capital of Japan?\n- Action: Use Search and summarize results.\n- Output: Tokyo."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        448,
+        208
+      ],
+      "id": "45e37549-6b1f-4611-91ea-3d656d267677",
+      "name": "search"
+    },
+    {
+      "parameters": {
+        "model": "qwen2.5:7b",
+        "options": {
+          "temperature": 0.2,
+          "keepAlive": "1h",
+          "numCtx": 1024
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        208
+      ],
+      "id": "afb81dd5-afe7-4e47-89c5-4a640b9ca7b8",
+      "name": "Ollama Chat Model3",
+      "credentials": {
+        "ollamaApi": {
+          "id": "pXtdOdEJVLwbpzQX",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        608,
+        416
+      ],
+      "id": "ac9bd712-4665-4e01-bfe9-2a6a05cdd9a1",
+      "name": "SerpAPI"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "ziadnasar6@gmail.com",
+          "mode": "list",
+          "cachedResultName": "ziadnasar6@gmail.com"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1088,
+        464
+      ],
+      "id": "822cdfe4-6614-45d7-92fb-b3e0c6fb2afc",
+      "name": "Get Event"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Supervisor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Supervisor",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get mail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gmail",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
+      "ai_tool": [
+        [
+          {
+            "node": "Gmail",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "calender": {
+      "ai_tool": [
+        [
+          {
+            "node": "Supervisor",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create": {
+      "ai_tool": [
+        [
+          {
+            "node": "calender",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gmail",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "search",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "calender",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "Supervisor",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Supervisor",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Supervisor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "search",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "calender",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "046ea925-bf8c-486c-a8c2-d39e6d0029da",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1683654809315c19d0a840f8124382572658b780e6471abee7e4b55976cd39e6"
+  },
+  "nodeGroups": [],
+  "id": "YtcHmazJGy5tBKRK",
+  "tags": []
+}
